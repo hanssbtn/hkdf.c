@@ -168,8 +168,6 @@ int32_t hkdf_expand(
 		}
 	}
 	ssize_t N = (ssize_t)ceil(((double)key_length) / ((double)prk_length));
-	printf("N: %lld\n", N);
-	printf("key_length: %lld\n", key_length);
 	sha512_context_t ctx;
 	uint8_t *Tcurr = malloc(sizeof(uint8_t) * (prk_length + info_length + 8)), *Tprev = malloc(sizeof(uint8_t) * (prk_length + info_length + 8));
 	if (!Tcurr || !Tprev) {
