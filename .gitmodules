@@ -1,0 +1,6 @@
+[submodule "curve25519.c"]
+	path = curve25519.c
+	url = git@github.com:hanssbtn/curve25519.c.git
+[submodule "sha512.c"]
+	path = sha512.c
+	url = git@github.com:hanssbtn/sha512.c.git
