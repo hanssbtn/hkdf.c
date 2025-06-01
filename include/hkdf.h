@@ -32,10 +32,8 @@ typedef struct {
 	};
 } hkdf_result_t;
 
-typedef hkdf_result_t hkdf_source_t;
-
 int32_t hkdf_convert_from_key(hkdf_result_t *const src, const char *const k, ssize_t len);
 int32_t hkdf_extract(uint8_t *const restrict prk, ssize_t prk_len, const uint8_t *const restrict key, const ssize_t key_length, const uint8_t *restrict const text, const ssize_t text_length, hkdf_hash_function_t hf);
-int32_t hkdf_expand(uint8_t *const restrict okm, const uint8_t *const restrict prk, ssize_t prk_length, const char *const info, const ssize_t key_length);
+int32_t hkdf_expand(uint8_t *const restrict okm, const ssize_t key_length, const uint8_t *const restrict prk, ssize_t prk_length, const char *const info, const ssize_t info_len, hkdf_hash_function_t hf);
 
 #endif // HKDF_H__

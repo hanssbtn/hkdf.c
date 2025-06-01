@@ -1,5 +1,5 @@
 #include "../include/hkdf.h"
-
+#include <math.h>
 
 int32_t hkdf_convert_from_key(hkdf_result_t *result, const char *const k, ssize_t len) {
 	if (!k || !result) return -1;
@@ -143,14 +143,65 @@ int32_t hkdf_extract(
 	return res;
 }
 
-int main(void) {
-	uint8_t prk[64] = {};
-	const uint8_t* text = (const uint8_t*)"hello world my name is";
-	ssize_t len = strlen(text); 
-	const uint8_t salt[] = {0x8E, 0x94, 0xEF, 0x80, 0x5B, 0x93, 0xE6, 0x83, 0xFF, 0x18}; 
-	hkdf_extract(prk, 64, text, len, salt, 10, HKDF_HASH_FUNC_SHA512);
-	for (int i = 0; i < 64; ++i) printf("%02X", prk[i]);
-	printf("\n");
-	printf("DONE\n");
+int32_t hkdf_expand(
+	uint8_t *const restrict okm, 
+	const ssize_t key_length,
+	const uint8_t *const restrict prk, 
+	ssize_t prk_length, 
+	const char *const info, 
+	const ssize_t info_length, 
+	hkdf_hash_function_t hf
+) {
+	if (!okm || !prk || (!info && info_length > 0) || (info && info_length <= 0)) return -1;
+	if (prk_length <= 0|| key_length < 0) return -4;
+	if (!key_length) return 0;
+	ssize_t hash_length = 0;
+	switch (hf) {
+		case HKDF_HASH_FUNC_SHA384: {
+			hash_length = 48;
+		} break;
+		case HKDF_HASH_FUNC_SHA512: {
+			hash_length = 64;
+		} break; 
+		default: {
+			return -4;
+		}
+	}
+	ssize_t N = (ssize_t)ceil(((double)key_length) / ((double)prk_length));
+	printf("N: %lld\n", N);
+	printf("key_length: %lld\n", key_length);
+	sha512_context_t ctx;
+	uint8_t *Tcurr = malloc(sizeof(uint8_t) * (prk_length + info_length + 8)), *Tprev = malloc(sizeof(uint8_t) * (prk_length + info_length + 8));
+	if (!Tcurr || !Tprev) {
+		if (Tcurr) free(Tcurr);
+		if (Tprev) free(Tprev);
+		return -2;
+	}
+	memcpy(Tprev, info, info_length);
+	uint8_t octet = 0x01;
+	Tprev[info_length] = octet;
+	ssize_t Tprev_length = info_length + 1;
+	hkdf_hmac_hash(Tcurr, &ctx, prk, prk_length, Tprev, Tprev_length, hf);
+	Tprev_length += hash_length;
+	memcpy(Tprev, Tcurr, hash_length);
+	memcpy(Tprev + hash_length, info, info_length);
+	uint8_t *tmp = Tcurr;
+	Tcurr = Tprev;
+	Tprev = tmp;
+	octet++;
+	Tprev[hash_length + info_length] = octet;
+	for (ssize_t i = 1; i < N; ++i) {
+		hkdf_hmac_hash(Tcurr, &ctx, prk, prk_length, Tprev, Tprev_length, hf);
+		tmp = Tcurr;
+		Tcurr = Tprev;
+		Tprev = tmp;
+		memcpy(Tprev, Tcurr, hash_length);
+		memcpy(Tprev + hash_length, info, info_length);
+		octet++;
+		Tprev[hash_length + info_length] = octet;
+	}
+	memcpy(okm, Tcurr, key_length);
+	free(Tcurr);
+	free(Tprev);
 	return 0;
 }
