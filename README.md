@@ -1,0 +1,2 @@
+# hkdf.c
+Minimalistic implementation of Hash-based Message Authentication Code Key Derivation Function written in C99 compiled with GCC 15.1.0 on Windows 10 x86-64. This repository is made for learning how encryption algorithms work and SHOULD not be used in a professional setting.
