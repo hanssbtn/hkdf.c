@@ -11,9 +11,6 @@ LIBDIR = lib
 STATIC_LIB_NAME = libhkdf.a
 ifeq ($(OS),Windows_NT)
     SHARED_LIB_NAME = libhkdf.dll
-    # For linking, Windows uses .dll, Linux uses .so. Adjust as needed.
-    # The -l:libname.dll syntax is common for MinGW.
-    # For runtime, you still need to ensure .dlls are in PATH or same dir.
 else
     SHARED_LIB_NAME = libhkdf.so
 endif
@@ -29,9 +26,6 @@ $(OBJDIR):
 
 $(LIBDIR):
 	@mkdir -p $(LIBDIR)
-
-$(OBJDIR)/hkdf.o: src/hkdf.c | $(OBJDIR)
-	$(CC) $(CFLAGS) -c $< -o $@
 
 $(HKDF_OBJ): src/hkdf.c | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
